@@ -1,3 +1,3 @@
 # dyngraph
 
-After paper publication the code will available. 
+After paper publication the code will be available. 
