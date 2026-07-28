@@ -1,0 +1,5 @@
+.git
+artifacts/*
+wandb
+__pycache__
+*.py[cod]

@@ -1,0 +1,10 @@
+__pycache__/
+*.py[cod]
+.venv/
+wandb/
+artifacts/*
+!artifacts/.gitkeep
+config.json
+*.log
+.idea/
+.vscode/

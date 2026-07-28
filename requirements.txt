@@ -1,0 +1,23 @@
+--extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.2.2
+torchvision==0.17.2
+torchaudio==2.2.2
+torch-geometric==2.5.3
+transformers==4.41.2
+tokenizers==0.19.1
+torchtext==0.17.2
+faiss-cpu==1.8.0
+pandas==2.2.2
+numpy==1.26.4
+scipy==1.13.1
+scikit-learn==1.5.0
+networkx==3.3
+tqdm==4.66.4
+wandb==0.17.2
+schedulefree==1.2
+datasets==2.20.0
+nltk==3.8.1
+nlpaug==1.1.11
+requests==2.32.3
+pytz==2024.1
+matplotlib==3.9.0
