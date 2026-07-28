@@ -8,13 +8,11 @@ from models.common import get_configs
 from utils.utils import send_msg
 import wandb
 import torch
-import json
 from sklearn.metrics import accuracy_score, classification_report, f1_score
 
 class AttrDict(dict):
     def __init__(self, *args, **kwargs):
         super(AttrDict, self).__init__(*args, **kwargs)
-        # Garante que os subdicionários também sejam AttrDict
         for key, value in self.items():
             if isinstance(value, dict):
                 self[key] = AttrDict(value)
@@ -43,17 +41,12 @@ class AttrDict(dict):
         except KeyError:
             raise AttributeError(f"'AttrDict' object has no attribute '{key}'")
 
-# Função para trocar o arquivo de log
 def trocar_arquivo_log(novo_arquivo):
-    # Obtém o logger raiz
     logger = logging.getLogger()
-    
-    # Remove todos os handlers existentes
     for handler in logger.handlers[:]:
         logger.removeHandler(handler)
         handler.close()
     
-    # Cria e adiciona o novo handler de arquivo
     novo_handler = logging.FileHandler(novo_arquivo, mode='a')
     novo_handler.setFormatter(logging.Formatter('%(asctime)s %(message)s'))
     logger.addHandler(novo_handler)
@@ -66,7 +59,6 @@ class BaseModel:
         self.report_score = False
         
     def setup_model(self):
-        # Método abstrato para ser implementado pelas subclasses
         raise NotImplementedError("Subclasses should implement this method.")
 
     def setup(self):
@@ -79,18 +71,13 @@ class BaseModel:
         try:
             wandb.finish()
             logging.info("Finished previous wandb run")
-        except Exception as e:
+        except Exception:
             logging.info("Try to finish previous wandb run")
         if "proj" in self.config:
             project = self.config["proj"]
         else:
             project = "TextClassificationDoc"
-        self.run = wandb.init(
-            # set the wandb project where this run will be logged
-            project=project,
-            # track hyperparameters and run metadata
-            config=self.config
-        )
+        self.run = wandb.init(project=project, config=self.config)
     
     def get_metrics(self, y_true, y_pred, tag=""):
         acc = accuracy_score(y_true, y_pred)
@@ -112,7 +99,6 @@ class BaseModel:
         current_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         t_name = self.config.transformer_name.replace('/','-')
         self.log_filename = f"artifacts/logs/{self.config.dataset_name}/{self.config.class_name}_{t_name}_log_{current_time}.log"
-        # Configuração inicial do logger raiz
         trocar_arquivo_log(self.log_filename)
         
         for k, v in self.config.items():
@@ -270,17 +256,8 @@ class BaseModel:
         if log_test:
             del print_best_logs["best_test"]["prediction"]
         logging.info(f"Current best: {print_best_logs}")
-        # import ipdb; ipdb.set_trace()
-        # # self.save_embeddings(embeddings_test, epoch=epoch,subset="test")
-        # df = pd.concat([
-        #     self.get_df_table(embeddings_train, 'train', self.df_train.label_names),
-        #     self.get_df_table(embeddings_test, 'test', self.df_test.label_names, 
-        #                     [self.target_names[i] for i in log_test["prediction"]]),
-        #                 ])
-        # self.save_embeddings(df, epoch,subset="train")
         
     def run_epoch(self, epoch):
-        # Método abstrato para ser implementado pelas subclasses
         raise NotImplementedError("Subclasses should implement this method.")
     
     def run_predict(self, df, df_train, compute_loss=True, embeddings_train=None):
@@ -308,34 +285,8 @@ class BaseModel:
         
         return dic_res, embedding_train, embedding_test, graph
     
-    def get_embeddings(self):
-        # Método abstrato para obtenção de embeddings
-        raise NotImplementedError("Subclasses should implement this method.")
-
     def log_epoch(self, epoch, metrics, additional_metrics=None):
         metrics.epoch = epoch
         if additional_metrics:
             metrics.update(additional_metrics)
         wandb.log(metrics)
-
-    def get_df_table(self, embeddings, subset, y_true, y_pred=None):
-        if y_pred is None:
-            y_pred = y_true
-        cols = [f"d{str(i).zfill(4)}" for i in range(embeddings.shape[1])]
-        df = pd.DataFrame(embeddings, columns=cols)
-        df["y_true"] = y_true
-        df["y_pred"] = y_pred
-        df["subset"] = subset
-        df = df[["subset", "y_pred", "y_true"] + cols]
-        return df
-        
-    def save_embeddings(self, df, epoch, subset=""):
-        table = wandb.Table(dataframe=df)
-        self.base_embedding_name = f"artifacts/embeddings/embeddings_{self.config.dataset_name}"
-        file_path = f"{self.base_embedding_name}_{subset}_epoch_{epoch}.json"     
-           
-        wandb.log(
-            {f"embeddings_{epoch}": table}
-        )
-        with open(file_path, 'w') as f:
-            json.dump(df.to_dict(), f)
