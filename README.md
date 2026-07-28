@@ -46,12 +46,8 @@ wandb login
 python run_experiment.py --dataset agnews --wandb --wandb-project DynGraphBERT
 ```
 
-O arquivo `config.json` é opcional. Para configurar uma notificação por webhook, copie `config.example.json` para `config.json` e preencha `url`. Não versione credenciais.
+O arquivo `config.json` é opcional. Para configurar uma notificação por webhook (Discord), copie `config.example.json` para `config.json` e preencha `url`.
 
 ## Resultados
 
 Cada execução grava versões CSV, JSON e pickle em `artifacts/results/`. Logs, modelos e embeddings também são mantidos sob `artifacts/` e não são versionados.
-
-## Proveniência
-
-Os arquivos centrais foram extraídos da versão commitada do repositório de pesquisa, ignorando deliberadamente alterações locais não commitadas. A CLI e os ajustes de configuração foram adicionados para tornar a execução isolada e reproduzível.
